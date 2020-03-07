@@ -11,4 +11,12 @@ iostream
 -
 fstream
 -
+string
+-
+map
+-
+vector
+-
+sstream
+-
 
