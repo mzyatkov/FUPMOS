@@ -13,8 +13,21 @@ typedef unsigned char uchar;
 struct commands {
     const string command_name;
     const string command_type;
-    const char command_code;
+    const T command_code;
 };
+
+void print_bin (T ans) {
+    vector<uchar> bin;
+    while (ans>0){
+        bin.push_back(ans%2);
+        ans/=2;
+    }
+    bin.resize(32);
+    for (int i = 31; i>=0; --i) {
+        cout<<(int)bin[i];
+    }
+    cout<<endl;
+}
 
 int put(vector<T> &Program, int index, uchar byte0, uchar byte1, uchar byte2, uchar byte3) {
     Program[index] = (byte3 << 24u) + (byte2 << 16u) + (byte1 << 8u) + byte0;
@@ -52,6 +65,63 @@ void str_normalize(string &s) {
         return;
     }
     s.erase(right);
+}
+
+int record_RM (vector<T>& Program, int address, const vector<string>& splitcommands, uchar code, const map<string, int>& labels) {
+    T ans=code;
+    auto registr = (uchar)stoi(splitcommands[1].substr(1, 2));
+    T num;
+    try {
+        num =(T)stoi(splitcommands[2]);
+    } catch(...) {
+        num = labels.find(splitcommands[2])->second;
+    }
+    ans = (((ans<<4u) | registr)<<20u) | num;
+    Program[address] = ans;
+    //print_bin(ans);
+    return 0;
+}
+int record_RR (vector<T>& Program, int address, const vector<string>& splitcommands, uchar code, const map<string, int>& labels) {
+    T ans=code;
+    auto registr1 = (uchar)stoi(splitcommands[1].substr(1, 2));
+    auto registr2 = (uchar)stoi(splitcommands[2].substr(1, 2));
+    T num;
+    try {
+        num =(T)stoi(splitcommands[3]);
+    } catch(...) {
+        num = labels.find(splitcommands[3])->second;
+    }
+    ans = (((((ans<<4u) | registr1)<<4u) | registr2)<<16u) | num;
+    Program[address] = ans;
+    //print_bin(ans);
+    return 0;
+}
+int record_RI (vector<T>& Program, int address, const vector<string>& splitcommands, uchar code, const map<string, int>& labels) {
+    T ans=code;
+    auto registr = (uchar)stoi(splitcommands[1].substr(1, 8));
+    T num;
+    try {
+        num =(T)stoi(splitcommands[2]);
+    } catch(...) {
+        num = labels.find(splitcommands[2])->second;
+    }
+    ans = (((ans<<4u) | registr)<<20u) | num;
+    Program[address] = ans;
+   // print_bin(ans);
+    return 0;
+}
+int record_J (vector<T>& Program, int address, const vector<string>& splitcommands, uchar code, const map<string, int>& labels) {
+    T ans=code;
+    T num;
+    try {
+        num =(T)stoi(splitcommands[1]);
+    } catch(...) {
+        num = labels.find(splitcommands[1])->second;
+    }
+    ans = (ans<<24u) + num;
+    Program[address] = ans;
+    //print_bin(ans);
+    return 0;
 }
 
 int main() {
@@ -112,8 +182,8 @@ int main() {
     vector<T> Program;
     Program.resize((1u) << 20u);
     map<string, int> labels;
-    map<string, char> codes;
-    map<char, string> types;
+    map<string, T> codes;
+    map<T, string> types;
     int r[16] = {};
 
     //Заполняем мапы для быстрого нахождения кода или типа команды
@@ -121,6 +191,7 @@ int main() {
         codes[i.command_name] = i.command_code;
         types[i.command_code] = i.command_type;
     }
+    //первый проход
     for (int cur_ptr = 0; !input_asm.eof();) {
         string s;
         getline(input_asm, s);
@@ -139,24 +210,62 @@ int main() {
         }
         cur_ptr += flag;
     }
-    input_asm.seekg(0, ios_base::beg);
 
+    //второй проход
+    input_asm.seekg(0, ios_base::beg);
     for (int cur_ptr = 0; !input_asm.eof();) {
         string s;
         getline(input_asm, s);
 
-        s = s.substr(0, max(s.find_first_of(';') + 1, s.length())); //удаляем комментарии
+        s = s.substr(0, s.find_first_of(';')); //удаляем комментарии
 
         vector<string> splitcommands = split(s, ' ');
-        bool flag = false;
-        for (auto &i:splitcommands) {
-            if (i[i.length() - 1] == ':') {
-                i.
+        for (int i = 0; i < splitcommands.size(); ++i) {
+            if (splitcommands[i][splitcommands[i].size()-1] == ':') {
+                splitcommands.erase(splitcommands.begin()+i);
+                i--;
             }
         }
-        cur_ptr += flag;
+        if (splitcommands.empty()) {
+            continue;
+        }
+        
+        int cmd_code = codes[splitcommands[0]];
+        string cmd_type = types[cmd_code];
+        if (cmd_type == "RM") {
+            record_RM(Program, cur_ptr, splitcommands,  cmd_code, labels);
+        } else if (cmd_type == "RR") {
+            record_RR(Program, cur_ptr, splitcommands,  cmd_code, labels);
+        } else if (cmd_type == "RI") {
+            record_RI(Program, cur_ptr, splitcommands,  cmd_code, labels);
+        } else if (cmd_type == "J") {
+            record_J(Program, cur_ptr, splitcommands,  cmd_code, labels);
+        } else if (splitcommands[0] == "end"){
+            Program[cur_ptr] = 0u;
+        } else {
+            cout<<"Compilation Failed"<<endl;
+        }
+
+
+
+        cout<<cur_ptr<<": ";
+        for (auto& i: splitcommands) {
+            cout<<i<<" ";
+        }
+        cout<<endl;
+
+        cur_ptr += 1;
     }
     input_asm.close();
+
+    for (int i = 0; i<Program.size(); i++) {
+        if (Program[i] == 0) {
+            continue;
+        }
+        cout.width(3);
+        cout<<i<<": ";
+        print_bin(Program[i]);
+    }
     Program.clear();
     return 0;
 }

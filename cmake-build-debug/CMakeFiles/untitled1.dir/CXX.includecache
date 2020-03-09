@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/mihail/CLionProjects/untitled1/main.cpp
+/home/mihail/Документы/assemblr/main.cpp
 iostream
 -
 fstream
