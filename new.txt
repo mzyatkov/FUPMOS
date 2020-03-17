@@ -1,0 +1,15 @@
+od
+objdump -d a.o
+nm 
+cc -S -O a.c
+cc -c -O a.c
+
+Как передаются регистры:
+
+%edi
+%esi
+%edx
+%ecx
+%r8d
+%r9d
+push

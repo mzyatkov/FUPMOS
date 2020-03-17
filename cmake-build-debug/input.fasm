@@ -24,6 +24,6 @@ lo1: lo3: calli fout
     lc r0 100
     itod r0 r0 0
     calli fout
-    lc r0 0
+    ori r0 0
     syscall r0 0
     end main
