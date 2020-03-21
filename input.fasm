@@ -1,0 +1,92 @@
+data2:
+    word
+    word
+    word
+    word
+    word
+    word
+    word
+    word
+    word
+    word
+printr1:
+    syscall r1 102
+    lc r0 10
+    syscall r0 105
+    ret 0
+printtrue:
+    lc r0 116
+    syscall r0 105
+    lc r0 114
+    syscall r0 105
+    lc r0 117
+    syscall r0 105
+    lc r0 101
+    syscall r0 105
+    lc r0 10
+    syscall r0 105
+    ret 0
+printfalse:
+    lc r0 102
+    syscall r0 105
+    lc r0 97
+    syscall r0 105
+    lc r0 108
+    syscall r0 105
+    lc r0 115
+    syscall r0 105
+    lc r0 101
+    syscall r0 105
+    lc r0 10
+    syscall r0 105
+    ret 0
+exit:
+    lc r0 0
+    syscall r0 0
+main:
+    lc r2 100
+    lc r3 200
+    cmp r2 r3 0
+    jne a11
+    jeq a12
+    jg  a13
+    jge a14
+    jl  a15
+    jle a16
+    jmp a17
+a11:
+    lc r1 11
+    calli printr1
+    calli printtrue
+    jmp a17
+a12:
+    lc r1 12
+    calli printr1
+    calli printfalse
+    jmp a17
+a13:
+    lc r1 13
+    calli printr1
+    calli printtrue
+    jmp a17
+a14:
+    lc r1 14
+    calli printr1 
+    calli printfalse
+    jmp a17
+a15:
+    lc r1 15
+    calli printr1
+    calli printtrue
+    jmp a17
+a16:
+    lc r1 16
+    calli printr1
+    calli printfalse
+    jmp a17
+a17:
+    lc r1 17
+    calli printr1
+    calli exit
+    end main
+

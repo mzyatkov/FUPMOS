@@ -19,4 +19,8 @@ vector
 -
 sstream
 -
+cstring
+-
+algorithm
+-
 
